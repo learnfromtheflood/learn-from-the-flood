@@ -1,4 +1,4 @@
-const APP_CACHE = 'learn-flood-app-v4-8';
+const APP_CACHE = 'learn-flood-app-v4-9';
 const AUDIO_CACHE = 'learn-flood-audio-v3';
 const IMAGE_CACHE = 'learn-flood-images-v4-1';
 const APP_FILES = ['./', './index.html', './style.css', './app.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
