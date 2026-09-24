@@ -141,7 +141,7 @@ const tracks = [
   { section: 2, number: '2.4', title: 'Tribal Village', file: 'audio/2.4.Tribal-Village.mp3', duration: 38.43, commentary: [
     'At this section of the museum, there will be museum headsets for you to wear. Please use them as you walk thru the fully reconstructed life like native village. We would like you to take your time and enjoy what the museum has to offer. Please look for the numbers located on the floor to listen to the audio descriptions of each area. As you complete your self-guided audio tour with the museum headsets, look for the small room that talks about the arrival of the Europeans. Then click on #5 Old World to New World to continue the tour.'
   ], images: ['images/section2/2.4.TribalVillage.png'] },
-  { section: 2, number: '2.5', title: 'Old World New World', file: 'audio/2.5.Old-World-New-World.mp3', duration: 267.57, commentary: [
+  { section: 2, number: '2.5', title: 'Old World New World', file: 'audio/2.5.Old-World-New-World.mp3', duration: 267.57, videoUrl: 'https://eliotbible.web.illinois.edu/', videoLabel: 'Watch the Eliot Indian Bible Project video', commentary: [
     'The arrival of the Europeans to the new world is another interesting story. A lot had transpired since the flood of Noah. The nation of Israel had been formed, the mosiac law was practiced for a period of time. Later the long awaited arrival and sacrifice of the Messiah. The preaching of the good news of God\'s Kingdom and the first century congregations grew throughout the roman empire. The Bible\'s message kept being copied and translated for millions more to enjoy. But as foretold, a dark period of time would occur. Centuries of explorers and crusades marked that period of time with great loss of life.',
     'As we started this tour, we read the prophecy found in Isaiah, that nations would learn war no more. From that time, it was evident that we haven\'t seen those words being fulfilled yet. New empires came and went, newly formed governments were created, inlcuding from the European continent. Nations continued in war.',
     'What we observe over time, were people who loved Jehovah\'s words contained in the Bible. They sincerely tried their best to preserve it and share that message with others. Sadly, fierce opposition continued against the preservation of Jehovah\'s word. Those who were oppressed sought a new way of life as they migrated to North America, a life free from religious persecution. You may read more details about that group of people referred to in the museum. These are the pilgrims.',
@@ -224,7 +224,8 @@ function renderContent(track) {
   const gallery = images ? `<div class="image-gallery">${images}</div>` : '';
   const body = paragraphs || (track.file ? '<p class="muted-copy">Written commentary for this Section 2 stop will be added in the next content pass.</p>' : '');
   const source = track.sourceUrl ? `<p class="source-link"><a href="${track.sourceUrl}" target="_blank" rel="noopener">View original Google Sites page</a></p>` : '';
-  contentPanel.innerHTML = `<div class="content-heading"><p class="eyebrow">Stop ${track.number}</p><h2>${track.title}</h2></div>${gallery}<div class="commentary">${body}</div>${source}`;
+  const video = track.videoUrl ? `<p class="source-link"><a href="${track.videoUrl}" target="_blank" rel="noopener noreferrer">${track.videoLabel || 'Watch video'} ↗</a></p>` : '';
+  contentPanel.innerHTML = `<div class="content-heading"><p class="eyebrow">Stop ${track.number}</p><h2>${track.title}</h2></div>${gallery}<div class="commentary">${body}</div>${video}${source}`;
 }
 
 async function loadTrack(index, { scrollToContent = false } = {}) {
