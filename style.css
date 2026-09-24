@@ -189,6 +189,7 @@ footer { text-align: center; padding: 10px 20px 42px; color: var(--muted); font-
   margin: 6px auto 4px;
   pointer-events: auto;
 }
+.now-playing audio.hidden { display: none; }
 .transport-two {
   grid-template-columns: 1fr 1fr;
   gap: 10px;

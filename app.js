@@ -116,17 +116,20 @@ const tracks = [
     ],
     images: ['images/section1/1.7.ExtinctAnimals.png']
   },
-  { section: 2, number: '2.1', title: 'Every Animal as Food', file: 'audio/2.1.Every-Animal-as-Food.mp3', duration: 91.38, commentary: [], images: [] },
-  { section: 2, number: '2.2', title: 'Tools', file: 'audio/2.2.Tools.mp3', duration: 146.10, commentary: [], images: [] },
-  { section: 2, number: '2.3', title: 'Farming', file: 'audio/2.3.Farming.mp3', duration: 115.02, commentary: [], images: [] },
-  { section: 2, number: '2.4', title: 'Tribal Village', file: 'audio/2.4.Tribal-Village.mp3', duration: 38.43, commentary: [], images: [] },
-  { section: 2, number: '2.5', title: 'Old World New World', file: 'audio/2.5.Old-World-New-World.mp3', duration: 267.57, commentary: [], images: [] },
-  { section: 2, number: '2.6', title: 'Abundant Knowledge', file: 'audio/2.6.Abundant-Knowledge.mp3', duration: 376.14, commentary: [], images: [] }
+  { section: 2, number: '2.1', title: 'Every Animal as Food', file: 'audio/2.1.Every-Animal-as-Food.mp3', duration: 91.38, commentary: [], images: ['images/section2/2.1.EveryAnimal.jpg'] },
+  { section: 2, number: '2.2', title: 'Tools', file: 'audio/2.2.Tools.mp3', duration: 146.10, commentary: [], images: ['images/section2/2.2.Tools-For-Work.png'] },
+  { section: 2, number: '2.3', title: 'Farming', file: 'audio/2.3.Farming.mp3', duration: 115.02, commentary: [], images: ['images/section2/2.3.Farming.png'] },
+  { section: 2, number: '2.4', title: 'Tribal Village', file: 'audio/2.4.Tribal-Village.mp3', duration: 38.43, commentary: [], images: ['images/section2/2.4.TribalVillage.png'] },
+  { section: 2, number: '2.5', title: 'Old World New World', file: 'audio/2.5.Old-World-New-World.mp3', duration: 267.57, commentary: [], images: ['images/section2/2.5.Old-World-To-New-World.png'] },
+  { section: 2, number: '2.6', title: 'Abundant Knowledge', file: 'audio/2.6.Abundant-Knowledge.mp3', duration: 376.14, commentary: [], images: ['images/section2/2.6.True-Knowledge-Abundant.png'] },
+  { section: 2, number: '2.7', title: 'Ark Size', commentary: [], images: ['images/section2/2.7.Ark-Size.png'] }
 ];
 
 const AUDIO_CACHE = 'learn-flood-audio-v3';
 const IMAGE_CACHE = 'learn-flood-images-v4-1';
 const audio = document.getElementById('audioPlayer');
+const playerLabel = document.getElementById('playerLabel');
+const audioTracks = tracks.filter(track => track.file);
 const titleEl = document.getElementById('nowPlayingTitle');
 const sectionEl = document.getElementById('nowPlayingSection');
 const prevBtn = document.getElementById('prevBtn');
@@ -156,13 +159,14 @@ function renderTracks() {
       const card = document.createElement('article');
       card.className = 'track-card';
       card.dataset.index = index;
-      card.innerHTML = `<div class="track-number">${track.number}</div><div class="track-info"><p class="track-title">${track.title}</p><p class="track-duration">${fmt(track.duration)}</p></div><button class="track-play" type="button" aria-label="Play ${track.title}" data-index="${index}">▶</button>`;
+      card.innerHTML = `<div class="track-number">${track.number}</div><div class="track-info"><p class="track-title">${track.title}</p><p class="track-duration">${track.file ? fmt(track.duration) : 'Image only'}</p></div><button class="track-play" type="button" aria-label="${track.file ? 'Play' : 'View'} ${track.title}" data-index="${index}">${track.file ? '▶' : 'View'}</button>`;
       host.appendChild(card);
     });
   }
   document.querySelectorAll('.track-play').forEach(btn => {
     btn.addEventListener('click', async () => {
       const idx = Number(btn.dataset.index);
+      if (!tracks[idx].file) { await loadTrack(idx, { scrollToContent: true }); return; }
       if (idx === currentIndex && !audio.paused) audio.pause();
       else {
         if (idx !== currentIndex) await loadTrack(idx, { scrollToContent: true });
@@ -176,7 +180,7 @@ function renderContent(track) {
   const paragraphs = (track.commentary || []).map(p => `<p>${p}</p>`).join('');
   const images = (track.images || []).map((src, i) => `<img src="${src}" alt="Tour image for ${track.title}${track.images.length > 1 ? ` ${i + 1}` : ''}" loading="lazy" />`).join('');
   const gallery = images ? `<div class="image-gallery">${images}</div>` : '';
-  const body = paragraphs || '<p class="muted-copy">Photo and written commentary for this Section 2 stop will be added in the next content pass. Audio is available now.</p>';
+  const body = paragraphs || (track.file ? '<p class="muted-copy">Written commentary for this Section 2 stop will be added in the next content pass.</p>' : '');
   const source = track.sourceUrl ? `<p class="source-link"><a href="${track.sourceUrl}" target="_blank" rel="noopener">View original Google Sites page</a></p>` : '';
   contentPanel.innerHTML = `<div class="content-heading"><p class="eyebrow">Stop ${track.number}</p><h2>${track.title}</h2></div>${gallery}<div class="commentary">${body}</div>${source}`;
 }
@@ -184,24 +188,32 @@ function renderContent(track) {
 async function loadTrack(index, { scrollToContent = false } = {}) {
   currentIndex = Math.max(0, Math.min(index, tracks.length - 1));
   const track = tracks[currentIndex];
+  audio.pause();
   if (activeBlobUrl) { URL.revokeObjectURL(activeBlobUrl); activeBlobUrl = null; }
-  const networkUrl = new URL(track.file, document.baseURI).href;
-  let playbackUrl = networkUrl;
-  try {
-    if ('caches' in window) {
-      const cache = await caches.open(AUDIO_CACHE);
-      const cached = await cache.match(networkUrl);
-      if (cached) {
-        const blob = await cached.blob();
-        activeBlobUrl = URL.createObjectURL(blob);
-        playbackUrl = activeBlobUrl;
+  if (track.file) {
+    const networkUrl = new URL(track.file, document.baseURI).href;
+    let playbackUrl = networkUrl;
+    try {
+      if ('caches' in window) {
+        const cache = await caches.open(AUDIO_CACHE);
+        const cached = await cache.match(networkUrl);
+        if (cached) {
+          const blob = await cached.blob();
+          activeBlobUrl = URL.createObjectURL(blob);
+          playbackUrl = activeBlobUrl;
+        }
       }
-    }
-  } catch (err) { console.warn('Could not open cached audio; using network copy.', err); }
-  audio.src = playbackUrl;
-  audio.load();
+    } catch (err) { console.warn('Could not open cached audio; using network copy.', err); }
+    audio.src = playbackUrl;
+    audio.load();
+  } else {
+    audio.removeAttribute('src');
+    audio.load();
+  }
+  audio.classList.toggle('hidden', !track.file);
+  playerLabel.textContent = track.file ? 'Now Playing' : 'Viewing Image';
   titleEl.textContent = track.title;
-  sectionEl.textContent = `Section ${track.section} · Track ${currentIndex + 1} of ${tracks.length}`;
+  sectionEl.textContent = `Section ${track.section} · Stop ${track.number}${track.file ? '' : ' · No audio'}`;
   renderContent(track);
   updateActiveCard();
   if (scrollToContent) {
@@ -215,12 +227,12 @@ function updateActiveCard() {
   document.querySelectorAll('.track-card').forEach(card => card.classList.toggle('active', Number(card.dataset.index) === currentIndex));
   document.querySelectorAll('.track-play').forEach(btn => {
     const active = Number(btn.dataset.index) === currentIndex;
-    btn.textContent = active && !audio.paused ? '❚❚' : '▶';
+    btn.textContent = tracks[Number(btn.dataset.index)].file ? (active && !audio.paused ? '❚❚' : '▶') : 'View';
   });
 }
 function updatePlayButton() { updateActiveCard(); }
-prevBtn.addEventListener('click', async () => { const wasPlaying = !audio.paused; await loadTrack(currentIndex - 1, { scrollToContent: true }); if (wasPlaying) audio.play().catch(() => {}); });
-nextBtn.addEventListener('click', async () => { const wasPlaying = !audio.paused; await loadTrack(currentIndex + 1, { scrollToContent: true }); if (wasPlaying) audio.play().catch(() => {}); });
+prevBtn.addEventListener('click', async () => { const wasPlaying = !audio.paused; await loadTrack(currentIndex - 1, { scrollToContent: true }); if (wasPlaying && tracks[currentIndex].file) audio.play().catch(() => {}); });
+nextBtn.addEventListener('click', async () => { const wasPlaying = !audio.paused; await loadTrack(currentIndex + 1, { scrollToContent: true }); if (wasPlaying && tracks[currentIndex].file) audio.play().catch(() => {}); });
 audio.addEventListener('error', () => { const err = audio.error; offlineStatus.textContent = `Audio could not load (error ${err ? err.code : 'unknown'}).`; });
 audio.addEventListener('play', updatePlayButton);
 audio.addEventListener('pause', updatePlayButton);
@@ -236,16 +248,16 @@ async function checkOfflineStatus() {
   if (!('caches' in window)) return;
   const audioCache = await caches.open(AUDIO_CACHE);
   let foundAudio = 0;
-  for (const track of tracks) if (await audioCache.match(new URL(track.file, document.baseURI).href)) foundAudio++;
+  for (const track of audioTracks) if (await audioCache.match(new URL(track.file, document.baseURI).href)) foundAudio++;
   const allImages = tracks.flatMap(t => t.images || []).map(url => new URL(url, document.baseURI).href);
   const imageCache = await caches.open(IMAGE_CACHE);
   let foundImages = 0;
   for (const url of allImages) if (await imageCache.match(url)) foundImages++;
-  if (foundAudio === tracks.length && foundImages === allImages.length) {
-    offlineStatus.textContent = 'Full tour audio + Section 1 images are ready offline';
+  if (foundAudio === audioTracks.length && foundImages === allImages.length) {
+    offlineStatus.textContent = 'Full tour audio + images are ready offline';
     downloadBtn.textContent = 'Downloaded ✓';
   } else if (foundAudio > 0 || foundImages > 0) {
-    offlineStatus.textContent = `${foundAudio}/${tracks.length} audio tracks and ${foundImages}/${allImages.length} images saved`;
+    offlineStatus.textContent = `${foundAudio}/${audioTracks.length} audio tracks and ${foundImages}/${allImages.length} images saved`;
   }
 }
 
@@ -255,13 +267,13 @@ downloadBtn.addEventListener('click', async () => {
   progressWrap.classList.remove('hidden');
   progressWrap.setAttribute('aria-hidden', 'false');
   const allImages = tracks.flatMap(t => t.images || []).map(url => new URL(url, document.baseURI).href);
-  const total = tracks.length + allImages.length;
+  const total = audioTracks.length + allImages.length;
   progressBar.max = total;
   progressBar.value = 0;
   let done = 0;
   try {
     const audioCache = await caches.open(AUDIO_CACHE);
-    for (const track of tracks) {
+    for (const track of audioTracks) {
       const url = new URL(track.file, document.baseURI).href;
       if (!(await audioCache.match(url))) {
         const response = await fetch(url, { cache: 'no-store' });
@@ -279,7 +291,7 @@ downloadBtn.addEventListener('click', async () => {
       }
       done++; progressBar.value = done; progressText.textContent = `${done} of ${total} items saved`;
     }
-    offlineStatus.textContent = 'Full tour audio + Section 1 images are ready offline';
+    offlineStatus.textContent = 'Full tour audio + images are ready offline';
     downloadBtn.textContent = 'Downloaded ✓';
     progressText.textContent = 'Offline download complete';
   } catch (err) {
