@@ -102,6 +102,7 @@ const tracks = [
   {
     section: 1, number: '1.7', title: 'Extinct Animals', file: 'audio/1.7.Extinct-Animals.mp3', duration: 171.05,
     sourceUrl: 'https://sites.google.com/view/learn-from-the-flood/section-1-the-flood/7-extinct-animals',
+    videoUrl: 'https://www.youtube.com/watch?v=QTEJw7WtRRA', videoLabel: 'Watch the elephant trunk video',
     commentary: [
       'The next exhibit you will visit is a recreated Mammoth an extraordinary creature that once roamed the planet. What do fossils of this creature teach us about a global flood?',
       'An article entitled: "When Giants Roamed Europe" comments about the mammoth:',
